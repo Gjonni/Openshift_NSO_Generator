@@ -18,3 +18,7 @@
 - name: "Install Client Openshift"
   include_tasks: 01-ocp4-client-setup.yaml
   tags: ['installation']
+
+- name: "Openshift Create Cluster"
+  include_tasks: 02-ocp4-create-cluster.yaml
+  tags: ['installation']

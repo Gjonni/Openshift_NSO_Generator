@@ -14,3 +14,8 @@
   loop:
     - "{{ client_linux }}"
     - "{{ install_linux }}"
+
+- name: Download ISO COREOS
+  ansible.builtin.get_url:
+    url: "{{ iso_coreos }}"
+    dest: "{{ work_dir }}"

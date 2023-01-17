@@ -8,6 +8,8 @@
       - python3-dns
       - git
       - tmux
+      - podman
+      - unzip
     state: present
  # environment: "{{ proxy_env }}"
   tags: ['package']
