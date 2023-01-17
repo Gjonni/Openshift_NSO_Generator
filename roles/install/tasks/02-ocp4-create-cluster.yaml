@@ -63,18 +63,18 @@
 
 - name: Add serve alias for foo user
   lineinfile:
-    path=/home/root/.bashrc
-    line="alias coreos-installer='podman run --privileged --pull always --rm -v /dev:/dev -v /run/udev:/run/udev -v $PWD:/data -w /data quay.io/coreos/coreos-installer:release'"
+    path=/root/.bashrc
+    line="alias coreos-installer='podman run --privileged --pull always --rm -v /dev:/dev -v /run/udev:/run/udev -v {{ work_dir }}:/data -w /data quay.io/coreos/coreos-installer:release'"
     owner=root
     state=present
     create=True
 
 - name: Source .bashrc
-  shell: "source /home/root/.bashrc"
+  shell: "source /root/.bashrc"
   args:
     executable: /bin/bash
 
 - name: Create RH COREOS New Iso
   shell:
-    cmd: "coreos-installer iso ignition embed -fi {{ work_dir }}/install_dir/bootstrap-in-place-for-live-iso.ign {{ work_dir }}/rhcos-live.x86_64.iso"
+    cmd: "coreos-installer iso ignition embed -fi install_dir/bootstrap-in-place-for-live-iso.ign rhcos-live.x86_64.iso"
     chdir: "{{ work_dir }}"
