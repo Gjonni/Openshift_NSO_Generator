@@ -1,0 +1,21 @@
+---
+## Create new project
+### ansible-playbook -i inventories/dev/hosts  main.yaml   -CD
+
+## Create new project and backup exist project ( exclude openshift- )
+### ansible-playbook -i inventory onboarding.yaml -CD -t create,backup
+
+## Only backup exist project ( exclude openshift-)
+### ansible-playbook -i inventory onboarding.yaml -CD -t backup
+
+
+- name: Openshift NSO Generator
+  hosts: "{{ target }}"
+  serial: 1
+#  vars:
+#      ansible_python_interpreter: /usr/bin/python3
+  gather_facts: false
+  roles:
+    - { role: install, tags: ['never','install'] }
+    - { role: configure, tags: ['never','configure'] }
+    - { role: destroy, tags: ['never','destroy'] }
