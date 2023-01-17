@@ -1,2 +1,20 @@
+
 ---
-# tasks file for install
+- name: "Install required package"
+  include_tasks: 00-bastion-requirements.yaml
+  tags: ['installation']
+
+
+- name: "Generate Random ClusterName"
+  include_tasks: 00.2-generate-random-clustername.yaml
+  when:
+    - cluster_name is not defined or cluster_name | length == 0
+  tags: ['installation']
+
+- name: "Generate SSH Key pair"
+  include_tasks: 00.3-generate-ssh-key.yaml
+  tags: ['installation']
+
+- name: "Install Client Openshift"
+  include_tasks: 01-ocp4-client-setup.yaml
+  tags: ['installation']

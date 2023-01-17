@@ -1,2 +1,13 @@
 ---
 # vars file for install
+ocp_version: 4.7.29
+api_vip: 10.10.10.13
+ingress_vip: 10.10.10.14
+base_domain: "filice.local"
+owner_mail: "giovanni.filice@icloud.com"
+
+
+work_dir: "/opt/openshift-install-{{ random_cluster_name | default(cluster_name) }}-{{ lookup('pipe','date +%Y%m%d') }}"
+openshift_clients_url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp_version }}"
+client_linux: "openshift-client-linux-{{ ocp_version }}.tar.gz"
+install_linux: "openshift-install-linux-{{ ocp_version }}.tar.gz"

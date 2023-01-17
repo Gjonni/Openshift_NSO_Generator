@@ -1,0 +1,24 @@
+---
+- name: Install a list of packages
+  yum:
+    name:
+      - python3-pip
+      - python3-dnf
+      - python3
+      - python3-dns
+      - git
+      - tmux
+    state: present
+ # environment: "{{ proxy_env }}"
+  tags: ['package']
+
+- name: Install requirements pip
+  pip:
+    name:
+      - dnspython
+      - openshift
+    executable: pip3
+    extra_args: "--user"
+    state: present
+  #environment: "{{ proxy_env }}"
+  tags: ['package']
