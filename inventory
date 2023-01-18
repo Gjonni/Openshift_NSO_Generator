@@ -1,2 +1,0 @@
-[contabo]
-contabo.filice.local ansible_host=185.188.249.122 ansible_user=root ansible_pass="Fg021080!" ansible_become=true
