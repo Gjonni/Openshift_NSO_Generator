@@ -18,4 +18,4 @@
 - name: Download ISO COREOS
   ansible.builtin.get_url:
     url: "{{ iso_coreos }}"
-    dest: "{{ work_dir }}"
+    dest: "{{ work_dir }}/{{ random_cluster_name | default(cluster_name) }}-rhcos-live.x86_64.iso"
