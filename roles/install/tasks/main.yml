@@ -4,7 +4,6 @@
   include_tasks: 00-bastion-requirements.yaml
   tags: ['installation']
 
-
 - name: "Generate Random ClusterName"
   include_tasks: 00.2-generate-random-clustername.yaml
   when:
@@ -13,12 +12,22 @@
 
 - name: "Generate SSH Key pair"
   include_tasks: 00.3-generate-ssh-key.yaml
+  when:
+    - cluster_name is not defined or cluster_name | length == 0
   tags: ['installation']
 
 - name: "Install Client Openshift"
   include_tasks: 01-ocp4-client-setup.yaml
+  when:
+    - cluster_name is not defined or cluster_name | length == 0
   tags: ['installation']
 
 - name: "Openshift Create Cluster"
   include_tasks: 02-ocp4-create-cluster.yaml
+  when:
+    - cluster_name is not defined or cluster_name | length == 0
+  tags: ['installation']
+
+- name: "Upload Iso on s3"
+  include_tasks: 02.1-upload-iso-on-s3.yaml
   tags: ['installation']

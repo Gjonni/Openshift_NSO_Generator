@@ -19,8 +19,12 @@
     name:
       - dnspython
       - openshift
+      - botocore
+      - boto3
     executable: pip3
     extra_args: "--user"
     state: present
   #environment: "{{ proxy_env }}"
   tags: ['package']
+
+

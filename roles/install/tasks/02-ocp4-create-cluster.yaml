@@ -52,6 +52,10 @@
   register: install_status
   tags: ['create_cluster']
 
+
+
+
+
 - name: Create RH COREOS
   shell:
     cmd: "{{ work_dir }}/openshift-install create single-node-ignition-config --dir={{ work_dir }}/install_dir"
@@ -61,20 +65,16 @@
   register: install_status
   tags: ['create_cluster']
 
-- name: Add serve alias for foo user
-  lineinfile:
-    path=/root/.bashrc
-    line="alias coreos-installer='podman run --privileged --pull always --rm -v /dev:/dev -v /run/udev:/run/udev -v {{ work_dir }}:/data -w /data quay.io/coreos/coreos-installer:release'"
-    owner=root
-    state=present
-    create=True
 
-- name: Source .bashrc
-  shell: "source /root/.bashrc"
-  args:
-    executable: /bin/bash
-
-- name: Create RH COREOS New Iso
+- name: Create RH COREOS ISO + ignition
   shell:
-    cmd: "coreos-installer iso ignition embed -fi install_dir/bootstrap-in-place-for-live-iso.ign rhcos-live.x86_64.iso"
+    cmd: "podman run --privileged --pull always --rm -v /dev:/dev -v /run/udev:/run/udev -v {{ work_dir }}:/data -w /data quay.io/coreos/coreos-installer:release iso ignition embed -fi install_dir/bootstrap-in-place-for-live-iso.ign rhcos-live.x86_64.iso "
     chdir: "{{ work_dir }}"
+  when:
+    - exist_install_config.stat.exists == true
+  register: install_status
+  tags: ['create_cluster']
+
+
+
+
