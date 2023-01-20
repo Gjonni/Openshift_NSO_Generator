@@ -53,9 +53,6 @@
   tags: ['create_cluster']
 
 
-
-
-
 - name: Create RH COREOS
   shell:
     cmd: "{{ work_dir }}/openshift-install create single-node-ignition-config --dir={{ work_dir }}/install_dir"

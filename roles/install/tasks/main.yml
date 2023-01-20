@@ -30,4 +30,25 @@
 
 - name: "Upload Iso on s3"
   include_tasks: 02.1-upload-iso-on-s3.yaml
+  when:
+    - cluster_name is not defined or cluster_name | length == 0
   tags: ['installation']
+
+- name: Login to Contabo Api"
+  include_tasks: 02.2-login-contabo-api.yaml
+  tags: ['installation']
+
+- name: Upload to Contabo"
+  include_tasks: 02.3-upload-contabo-image.yaml
+  when:
+    - cluster_name is not defined or cluster_name | length == 0
+  tags: ['installation']
+
+- name: Login to Contabo Api"
+  include_tasks: 02.2-login-contabo-api.yaml
+  tags: ['installation']
+
+- name: Reinstal Specific Image"
+  include_tasks: 03-reinstall-vps.yaml
+  tags: ['installation']
+

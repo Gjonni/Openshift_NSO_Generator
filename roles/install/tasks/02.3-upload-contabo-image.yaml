@@ -1,0 +1,28 @@
+- name: Upload Custom Image on Contabo
+  ansible.builtin.uri:
+    url: https://api.contabo.com/v1/compute/images
+    method: POST
+    body_format: form-urlencoded
+    headers: 
+      Authorization: Bearer {{ access_token }}
+      x-request-id: "{{ session_state }}"
+    body:
+      grant_type: password
+      name: "{{ random_cluster_name | default(cluster_name) }}"
+      description: "Immagine relativa al cluster {{ random_cluster_name | default(cluster_name) }} "
+      url: "https://eu2.contabostorage.com/726e7d25992341538bcb6907fdd0adfe:iso-image/{{ random_cluster_name | default(cluster_name) }}-rhcos-live.x86_64.iso"
+      osType: Linux
+      version: 1.0
+    status_code: 201
+  register: contabo_custom_image
+
+
+- name: Debug S3
+  ansible.builtin.debug:
+    msg: "{{ contabo_custom_image }}"
+    verbosity: 0
+
+  
+- name: Pause for 5 minutes to wait upload image
+  ansible.builtin.pause:
+    minutes: 10
