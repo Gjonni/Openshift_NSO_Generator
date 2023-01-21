@@ -1,0 +1,167 @@
+
+- name: Upload/PUT file to S3 bucket
+  community.aws.s3_sync:
+    aws_access_key: "{{s3.access_key }}"
+    aws_secret_key: "{{ s3.secret_key }}"
+    endpoint_url : "{{ s3.url }}"
+    bucket: "{{ s3.bucket }}"
+    file_root: "{{ work_dir }}/{{ random_cluster_name | default(cluster_name) }}-rhcos-live.x86_64.iso"
+    permission: public-read
+  register: putresult
+
+- name: Debug S3
+  ansible.builtin.debug:
+    msg: "{{ putresult }}"
+    verbosity: 3
+
+- name: List keys or Objects
+  amazon.aws.aws_s3:
+    aws_access_key: "{{ s3.access_key }}"
+    aws_secret_key: "{{ s3.secret_key }}"
+    s3_url: "{{ s3.url }}"
+    bucket: "{{ s3.bucket }}"
+    mode: list
+  register: listresult
+
+- name: Debug S3
+  ansible.builtin.debug:
+    msg: "{{ listresult }}"
+    verbosity: 3
+
+
+- name: Login to an API
+  ansible.builtin.uri:
+    url: "{{  contabo.url }}"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      username: "{{  contabo.username }}"
+      password: "{{  contabo.password }}"
+      grant_type: password
+      client_id: "{{  contabo.client_id }}"
+      client_secret: "{{  contabo.client_secret }}"
+    status_code: 200
+  register: contabo_login
+
+
+- name: Set Access TOken 
+  set_fact: 
+    access_token: "{{ contabo_login.json.access_token }}"
+
+- name: Set Session State
+  set_fact: 
+    session_state: "{{ contabo_login.json.session_state }}"
+
+
+- name: Debug Contabo
+  ansible.builtin.debug:
+    msg: "{{ contabo_login }}"
+    verbosity: 3
+
+- name: Upload Custom Image on Contabo
+  ansible.builtin.uri:
+    url: https://api.contabo.com/v1/compute/images
+    method: POST
+    body_format: form-urlencoded
+    headers: 
+      Authorization: Bearer {{ access_token }}
+      x-request-id: "{{ session_state }}"
+    body:
+      grant_type: password
+      name: "{{ random_cluster_name | default(cluster_name) }}"
+      description: "Immagine relativa al cluster {{ random_cluster_name | default(cluster_name) }} "
+      url: "https://eu2.contabostorage.com/726e7d25992341538bcb6907fdd0adfe:iso-image/{{ random_cluster_name | default(cluster_name) }}-rhcos-live.x86_64.iso"
+      osType: Linux
+      version: 1.0
+    status_code: 201
+  register: contabo_custom_image
+
+
+- name: Debug S3
+  ansible.builtin.debug:
+    msg: "{{ contabo_custom_image }}"
+    verbosity: 3
+
+- name: Pause for 5 minutes to wait upload image
+  ansible.builtin.pause:
+    minutes: 10
+
+- name: Get List Istance
+  ansible.builtin.uri:
+    url: https://api.contabo.com/v1/compute/instances
+    method: GET
+    body_format: form-urlencoded
+    headers: 
+      Authorization: Bearer {{ access_token }}
+      x-request-id: "{{ session_state }}"
+    body:
+      grant_type: password
+    status_code: 200
+  register: contabo_vps_list
+
+
+- name: Get instanceId
+  set_fact: 
+    instanceId: "{{ contabo_vps_list.json.data }}"
+
+
+- name: Debug VPS list
+  ansible.builtin.debug:
+    msg: "{{ item.instanceId }}"
+    verbosity: 3
+  loop: "{{ instanceId  }}"
+
+
+- name: Get List Image
+  ansible.builtin.uri:
+    url: https://api.contabo.com/v1/compute/images
+    method: GET
+    body_format: form-urlencoded
+    headers: 
+      Authorization: Bearer {{ access_token }}
+      x-request-id: "{{ session_state }}"
+    body:
+      grant_type: password
+    status_code: 200
+  register: contabo_image_list
+
+
+- name: Debug contabo_image_list
+  ansible.builtin.debug:
+    msg: "{{ item.name }}"
+    verbosity: 3
+  loop: "{{ contabo_image_list.json.data }}"
+
+
+- name: Set imageId
+  set_fact: 
+    imageId: "{{ item.imageId }}"
+  loop: "{{ contabo_image_list.json.data  }}"
+  when: 
+    - item.name == "{{ random_cluster_name | default(cluster_name) }}"
+
+- name: Debug contabo_image_list
+  ansible.builtin.debug:
+    msg: "{{ imageId }}"
+    verbosity: 3
+
+- name: Set rootPassword
+  set_fact: 
+    rootPassword: "{{ lookup('community.general.random_string', length=10, upper=false, special=false) }}"
+
+- name: Reinstall Specific Istance
+  ansible.builtin.uri:
+    url: "https://api.contabo.com/v1/compute/instances/{{ contabo.instanceId }}"
+    method: PUT
+    body_format: form-urlencoded
+    headers: 
+      Authorization: Bearer {{ access_token }}
+      x-request-id: "{{ session_state }}"
+    body:
+      grant_type: password
+      imageId: "{{ imageId }}"
+    status_code: 200
+  register: contabo_vps_list
+  until: "contabo_vps_list is not failed"
+  retries: 10
+  delay: 10

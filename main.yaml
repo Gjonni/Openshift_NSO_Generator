@@ -17,6 +17,9 @@
 #      ansible_python_interpreter: /usr/bin/python3
   gather_facts: false
   roles:
-    - { role: install, tags: ['never','install'] }
-    - { role: configure, tags: ['never','configure'] }
-    - { role: destroy, tags: ['never','destroy'] }
+    - role: install
+      tags: never
+    - role: configure
+      tags: never
+    - role: destroy
+      tags: never

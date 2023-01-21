@@ -1,54 +1,32 @@
-
 ---
 - name: "Install required package"
-  include_tasks: 00-bastion-requirements.yaml
-  tags: ['installation']
+  import_tasks: requirements.yml
+  tags: 
+    - installation
+    - requirements
 
-- name: "Generate Random ClusterName"
-  include_tasks: 00.2-generate-random-clustername.yaml
-  when:
-    - cluster_name is not defined or cluster_name | length == 0
-  tags: ['installation']
+- name: Install, configure Openshift requirements and ignition file
+  block:
+    - name: "Generate Random ClusterName"
+      include_tasks: openshift-configure.yml
+  when: cluster_name is not defined or cluster_name | length == 0
+  tags: 
+    - installation
+    - ocp
 
-- name: "Generate SSH Key pair"
-  include_tasks: 00.3-generate-ssh-key.yaml
-  when:
-    - cluster_name is not defined or cluster_name | length == 0
-  tags: ['installation']
+- name: Contabo Configuration and Upload custom image
+  block:
+    - name: "contabo configure VPS"
+      include_tasks: contabo-vps.yml
+  when: contabo.enable |bool
+  tags: 
+    - installation
+    - contabo
 
-- name: "Install Client Openshift"
-  include_tasks: 01-ocp4-client-setup.yaml
-  when:
-    - cluster_name is not defined or cluster_name | length == 0
-  tags: ['installation']
+- name: "Final Report"
+  import_tasks: final-report.yml
+  tags: 
+    - installation
+    - final
 
-- name: "Openshift Create Cluster"
-  include_tasks: 02-ocp4-create-cluster.yaml
-  when:
-    - cluster_name is not defined or cluster_name | length == 0
-  tags: ['installation']
-
-- name: "Upload Iso on s3"
-  include_tasks: 02.1-upload-iso-on-s3.yaml
-  when:
-    - cluster_name is not defined or cluster_name | length == 0
-  tags: ['installation']
-
-- name: Login to Contabo Api"
-  include_tasks: 02.2-login-contabo-api.yaml
-  tags: ['installation']
-
-- name: Upload to Contabo"
-  include_tasks: 02.3-upload-contabo-image.yaml
-  when:
-    - cluster_name is not defined or cluster_name | length == 0
-  tags: ['installation']
-
-- name: Login to Contabo Api"
-  include_tasks: 02.2-login-contabo-api.yaml
-  tags: ['installation']
-
-- name: Reinstal Specific Image"
-  include_tasks: 03-reinstall-vps.yaml
-  tags: ['installation']
 

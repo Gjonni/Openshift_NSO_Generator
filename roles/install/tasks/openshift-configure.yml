@@ -1,22 +1,75 @@
+- name: Generate Random ClusterName
+  set_fact: 
+    random_cluster_name: "{{ lookup('community.general.random_string', length=5, upper=false, special=false) }}"
+
+- name: Debug Cluster Name
+  ansible.builtin.debug:
+    msg: "{{ random_cluster_name }}"
+    verbosity: 0
+
+- name: Create working directory if it does not exist
+  file:
+    path: "{{ work_dir }}/ssh_key"
+    state: directory
+    mode: '0755'
+
+- name: Generate an OpenSSH keypair with a different algorithm (ed25519)
+  community.crypto.openssh_keypair:
+    path: "{{ work_dir }}/ssh_key/{{ random_cluster_name | default(cluster_name) }}"
+    type: ed25519
+
+- name: Read SSH generate
+  slurp:
+    src: "{{ work_dir }}/ssh_key/{{ random_cluster_name | default(cluster_name) }}.pub"
+  register: slurped_user_data_sshkey
+
+- name: Decode data and store as fact 
+  set_fact:
+    ssh_key: "{{ slurped_user_data_sshkey.content | b64decode }}"
+  when: 
+    - slurped_user_data_sshkey is defined
+
+- name: Debug SSH key
+  ansible.builtin.debug:
+    msg: "{{ ssh_key }}"
+    verbosity: 0
+
+- name: Create a directory if it does not exist
+  ansible.builtin.file:
+    path: "{{ work_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Download openshift clients
+  ansible.builtin.unarchive:
+    src: "{{ openshift_clients_url }}/{{ item }}"
+    dest: "{{ work_dir }}"
+    remote_src: yes
+  loop:
+    - "{{ client_linux }}"
+    - "{{ install_linux }}"
+
+- name: Download ISO COREOS
+  ansible.builtin.get_url:
+    url: "{{ iso_coreos }}"
+    dest: "{{ work_dir }}/{{ random_cluster_name | default(cluster_name) }}-rhcos-live.x86_64.iso"
+
 - name: Create working directory if it does not exist
   file:
     path: "{{ work_dir }}"
     state: directory
     mode: '0755'
-  tags: ['create_cluster']
 
 - name: Create working directory if it does not exist
   file:
     path: "{{ work_dir }}/install_dir"
     state: directory
     mode: '0755'
-  tags: ['create_cluster']
 
 - name: Verify if install-config already run
   stat:
     path: "{{ work_dir }}/install-config.yaml"
   register: install_config
-  tags: ['create_cluster']
 
 - fail:
     msg: "{{ work_dir }} has already been initialized. Please delete it if you want to re-initialize."
@@ -27,7 +80,6 @@
     src: "{{ role_path }}/templates/install-config.yaml.j2"
     dest: "{{ work_dir }}/install-config.yaml.copy"
   when: install_config.stat.exists == false
-  tags: ['create_cluster']
 
 - name: Copy install-config.yaml file
   copy:
@@ -35,13 +87,11 @@
     dest: "{{ work_dir }}/install_dir/install-config.yaml"
     remote_src: yes
   when: install_config.stat.exists == false
-  tags: ['create_cluster']
 
 - name: Verify if Client exist already run
   stat:
     path: "{{ work_dir }}/openshift-install"
   register: exist_install_config
-  tags: ['create_cluster']
 
 - name: Install Cluster Openshift {{ ocp_version }}
   shell:
@@ -50,8 +100,6 @@
   when:
     - exist_install_config.stat.exists == true
   register: install_status
-  tags: ['create_cluster']
-
 
 - name: Create RH COREOS
   shell:
@@ -60,8 +108,6 @@
   when:
     - exist_install_config.stat.exists == true
   register: install_status
-  tags: ['create_cluster']
-
 
 - name: Create RH COREOS ISO + ignition
   shell:
@@ -70,7 +116,6 @@
   when:
     - exist_install_config.stat.exists == true
   register: install_status
-  tags: ['create_cluster']
 
 
 

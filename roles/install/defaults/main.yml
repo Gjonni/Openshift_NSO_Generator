@@ -1,2 +1,30 @@
 ---
 # defaults file for install
+work_dir: "/opt/openshift-install-{{ random_cluster_name | default(cluster_name) }}-{{ lookup('pipe','date +%Y%m%d') }}"
+openshift_clients_url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ openshift.version }}"
+client_linux: "openshift-client-linux-{{ openshift.version }}.tar.gz"
+install_linux: "openshift-install-linux-{{ openshift.version }}.tar.gz"
+iso_coreos: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/latest/rhcos-live.x86_64.iso"
+personal_ssh_key: ''
+
+openshift:
+  version: 4.10.46
+  baseDomain: example.com
+
+s3:
+  access_key: ''
+  secret_key: ''
+  url: ''
+  bucket: iso-image
+
+contabo: 
+  enable: True
+  url: 'https://auth.contabo.com/auth/realms/contabo/protocol/openid-connect/token'
+  username: ''
+  password: ''
+  client_id: ''
+  client_secret: ''
+  instanceId: ''
+  disk: ''
+
+

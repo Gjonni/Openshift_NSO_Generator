@@ -1,32 +1,5 @@
 ---
-# vars file for install
-ocp_version: 4.10.46
-api_vip: 10.10.10.13
-ingress_vip: 10.10.10.14
-base_domain: "filice.local"
-owner_mail: "giovanni.filice@icloud.com"
 
 
-work_dir: "/opt/openshift-install-{{ random_cluster_name | default(cluster_name) }}-{{ lookup('pipe','date +%Y%m%d') }}"
-openshift_clients_url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp_version }}"
-client_linux: "openshift-client-linux-{{ ocp_version }}.tar.gz"
-install_linux: "openshift-install-linux-{{ ocp_version }}.tar.gz"
-iso_coreos: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/latest/rhcos-live.x86_64.iso"
-
-
-
-aws_access_key: 
-aws_secret_key: 
-s3_url: 
-bucket: 
-
-
-
-contabo_url: 
-contabo_username: 
-contabo_password: 
-contabo_client_id: 
-contabo_client_secret:
-contabo_instanceId: '201162412'
 
 

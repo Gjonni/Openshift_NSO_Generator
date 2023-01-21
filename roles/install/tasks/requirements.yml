@@ -1,4 +1,3 @@
----
 - name: Install a list of packages
   yum:
     name:
@@ -11,8 +10,6 @@
       - podman
       - unzip
     state: present
- # environment: "{{ proxy_env }}"
-  tags: ['package']
 
 - name: Install requirements pip
   pip:
@@ -24,7 +21,5 @@
     executable: pip3
     extra_args: "--user"
     state: present
-  #environment: "{{ proxy_env }}"
-  tags: ['package']
 
 

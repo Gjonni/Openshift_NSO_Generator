@@ -1,0 +1,31 @@
+- name: extract password from file
+  slurp:
+    src: "{{ work_dir }}/install_dir/.openshift_install.log"
+  register: log_openshift_installer
+  tags: ['package']
+
+- name: Get Credentials from log
+  debug: 
+    msg: "{{ log_openshift_installer['content'] | b64decode   }}"
+    verbosity: 0
+
+- name: Get Credentials from log
+  set_fact:
+    log_kubeconfig: "{{ log_openshift_installer['content'] | b64decode | regex_search('To access the cluster as the system:admin user when using.*')  }}"
+  
+- name: Get Credentials from log
+  set_fact:
+    log_webconsole_url: "{{ log_openshift_installer['content'] | b64decode | regex_search('Access the OpenShift web-console.*')  }}"
+
+- name: Get Credentials from log
+  set_fact:
+    log_credential: "{{ log_openshift_installer['content'] | b64decode | regex_search('Login to the console with user.*')  }}"
+
+- name: Get Credentials from log
+  debug: 
+    msg: 
+      - "{{ log_kubeconfig }}"
+      - "{{ log_webconsole_url }}"
+      - "{{ log_credential }}"
+    verbosity: 0
+
