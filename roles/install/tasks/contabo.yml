@@ -1,0 +1,137 @@
+
+- name: Upload/PUT file to S3 bucket
+  block:
+    - name: Upload/PUT file to S3 bucket
+      s3_sync:
+        aws_access_key: "{{s3.access_key }}"
+        aws_secret_key: "{{ s3.secret_key }}"
+        endpoint_url : "{{ s3.url }}"
+        bucket: "{{ s3.bucket }}"
+        file_root: "{{ work_dir }}/{{ random_cluster_name | default(cluster_name) }}-rhcos-live.x86_64.iso"
+        permission: public-read
+      register: putresult
+
+    - name: Debug S3
+      debug:
+        msg: "{{ putresult }}"
+        verbosity: 3
+
+    - name: List keys or Objects
+      aws_s3:
+        aws_access_key: "{{ s3.access_key }}"
+        aws_secret_key: "{{ s3.secret_key }}"
+        s3_url: "{{ s3.url }}"
+        bucket: "{{ s3.bucket }}"
+        mode: list
+      register: listresult
+
+    - name: Debug S3
+      debug:
+        msg: "{{ listresult }}"
+        verbosity: 3
+  tags: s3
+
+
+- name: Login to Contabo API
+  block:
+    - name: Login to an API
+      uri:
+        url: "{{  contabo.authUrl }}"
+        method: POST
+        body_format: form-urlencoded
+        body:
+          username: "{{  contabo.username }}"
+          password: "{{  contabo.password }}"
+          grant_type: password
+          client_id: "{{  contabo.client_id }}"
+          client_secret: "{{  contabo.client_secret }}"
+        status_code: 200
+      register: contabo_login
+    
+    - name: Set Access Token 
+      set_fact: 
+        access_token: "{{ contabo_login.json.access_token }}"
+
+    - name: Set Session State
+      set_fact: 
+        session_state: "{{ contabo_login.json.session_state }}"
+
+    - name: Debug Contabo
+      debug:
+        msg: "{{ contabo_login }}"
+        verbosity: 3
+  tags: login
+
+
+- name: Upload Custom Image on Contabo
+  block:
+    - name: Upload Custom Image on Contabo
+      uri:
+        url: "{{ contabo.url }}/v1/compute/images"
+        method: POST
+        body_format: form-urlencoded
+        headers: 
+          Authorization: Bearer {{ access_token }}
+          x-request-id: "{{ session_state }}"
+        body:
+          grant_type: password
+          name: "{{ random_cluster_name | default(cluster_name) }}"
+          description: "Immagine relativa al cluster {{ random_cluster_name | default(cluster_name) }} "
+          url: "{{ s3.publicUrl }}/{{ random_cluster_name | default(cluster_name) }}-rhcos-live.x86_64.iso"
+          osType: Linux
+          version: 1.0
+        status_code: 201
+      register: contabo_custom_image
+      until: contabo_custom_image is not failed
+    
+    - name: Debug 
+      debug:
+        msg: "{{ contabo_custom_image }}"
+        verbosity: 3
+
+    - name: Set imageId
+      set_fact: 
+        imageId: "{{ item.imageId }}"
+      loop: "{{ contabo_custom_image.json.data }}"
+
+    - name: Debug 
+      debug:
+        msg: "{{ imageId }}"
+        verbosity: 3
+
+    - name: Set rootPassword
+      set_fact: 
+        rootPassword: "{{ lookup('community.general.random_string', length=10, upper=false, special=false) }}"
+
+    - name: Reinstall Specific Istance
+      uri:
+        url: "{{ contabo.url }}/v1/compute/instances/{{ contabo.instanceId }}"
+        method: PUT
+        body_format: form-urlencoded
+        headers: 
+          Authorization: Bearer {{ access_token }}
+          x-request-id: "{{ session_state }}"
+        body:
+          grant_type: password
+          imageId: "{{ imageId }}"
+        status_code: 200
+      register: contabo_vps_list
+      until: contabo_vps_list is not failed
+      retries: 15
+      delay: 60
+  rescue:
+    - debug:
+        msg: "Task Group failed, let's give it another shot"  
+
+#    - name: Run tasks/other.yaml instead of 'main'
+#      ansible.builtin.import_role:
+#        name: destroy
+#      vars:
+#        imageId: "{{ imageId }}"
+#        cluster: "{{ random_cluster_name | default(cluster_name) }}"
+  tags: Upload
+
+
+
+
+

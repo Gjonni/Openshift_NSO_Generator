@@ -2,12 +2,11 @@
   slurp:
     src: "{{ work_dir }}/install_dir/.openshift_install.log"
   register: log_openshift_installer
-  tags: ['package']
 
 - name: Get Credentials from log
   debug: 
     msg: "{{ log_openshift_installer['content'] | b64decode   }}"
-    verbosity: 0
+    verbosity: 3
 
 - name: Get Credentials from log
   set_fact:

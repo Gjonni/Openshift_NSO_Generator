@@ -1,25 +1,39 @@
 ---
 # defaults file for install
 work_dir: "/opt/openshift-install-{{ random_cluster_name | default(cluster_name) }}-{{ lookup('pipe','date +%Y%m%d') }}"
-openshift_clients_url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ openshift.version }}"
-client_linux: "openshift-client-linux-{{ openshift.version }}.tar.gz"
-install_linux: "openshift-install-linux-{{ openshift.version }}.tar.gz"
-iso_coreos: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/latest/rhcos-live.x86_64.iso"
 personal_ssh_key: ''
 
 openshift:
-  version: 4.10.46
+  version: 4.10.45
   baseDomain: example.com
+
+openshift_clients_url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ openshift.version }}"
+openshift_client_linux: 'openshift-client-linux-{{ openshift.version }}.tar.gz'
+openshift_install_linux: 'openshift-install-linux-{{ openshift.version }}.tar.gz'
+openshift_iso: 'https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/latest/rhcos-live.x86_64.iso'
+
+
+okd:
+  enable: False
+  version: 4.12
+  baseDomain: example.com
+okd_url: https://github.com/okd-project/okd/releases/download/4.12.0-0.okd-2023-01-21-055900/
+okd_client_linux: openshift-client-linux-4.12.0-0.okd-2023-01-21-055900.tar.gz
+okd_install_linux: openshift-install-linux-4.12.0-0.okd-2023-01-21-055900.tar.gz
+okd_iso: https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/36.20221030.3.0/x86_64/fedora-coreos-36.20221030.3.0-live.x86_64.iso
+
 
 s3:
   access_key: ''
   secret_key: ''
   url: ''
   bucket: iso-image
+  publicUrl: ''
 
 contabo: 
   enable: True
-  url: 'https://auth.contabo.com/auth/realms/contabo/protocol/openid-connect/token'
+  authUrl: 'https://auth.contabo.com/auth/realms/contabo/protocol/openid-connect/token'
+  url: 'https://api.contabo.com'
   username: ''
   password: ''
   client_id: ''

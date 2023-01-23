@@ -42,16 +42,16 @@
 
 - name: Download openshift clients
   ansible.builtin.unarchive:
-    src: "{{ openshift_clients_url }}/{{ item }}"
+    src: "{{ okd_url }}/{{ item }}"
     dest: "{{ work_dir }}"
     remote_src: yes
   loop:
-    - "{{ openshift_client_linux }}"
-    - "{{ openshift_install_linux }}"
+    - "{{ okd_client_linux }}"
+    - "{{ okd_install_linux }}"
 
 - name: Download ISO COREOS
   ansible.builtin.get_url:
-    url: "{{ openshift_iso }}"
+    url: "{{ okd_iso }}"
     dest: "{{ work_dir }}/{{ random_cluster_name | default(cluster_name) }}-rhcos-live.x86_64.iso"
 
 - name: Create working directory if it does not exist

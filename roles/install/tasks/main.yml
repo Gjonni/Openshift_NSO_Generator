@@ -5,20 +5,25 @@
     - installation
     - requirements
 
+
 - name: Install, configure Openshift requirements and ignition file
   block:
     - name: "Generate Random ClusterName"
       include_tasks: openshift-configure.yml
-  when: cluster_name is not defined or cluster_name | length == 0
+  when:
+    - cluster_name is not defined or cluster_name | length == 0
+    - openshift.enable | bool
+    - not okd.enable | bool
   tags: 
     - installation
     - ocp
 
+
 - name: Contabo Configuration and Upload custom image
   block:
     - name: "contabo configure VPS"
-      include_tasks: contabo-vps.yml
-  when: contabo.enable |bool
+      include_tasks: contabo.yml
+  when: contabo.enable | bool
   tags: 
     - installation
     - contabo
